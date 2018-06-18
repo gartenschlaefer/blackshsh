@@ -12,11 +12,12 @@ public class ShepherdAgent : Agent {
   }
 
   public override void CollectObservations(){
+    /*
     AddVectorObs(gameObject.transform.rotation.z);
     AddVectorObs(gameObject.transform.rotation.x);
     AddVectorObs((wolf.transform.position - gameObject.transform.position));
-    AddVectorObs(wolf.transform.GetComponent<Rigidbody>().velocity);
     SetTextObs("Testing " + gameObject.GetInstanceID());
+    */
   }
 
   public override void AgentAction(float[] vectorAction, string textAction){
