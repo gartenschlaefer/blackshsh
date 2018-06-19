@@ -7,8 +7,10 @@ public class ShepherdAgent : Agent {
   [Header("Specific to Wolf")]
   public GameObject wolf;
 
-  public override void InitializeAgent(){
+  private Vector3 shepherd_start_pos;
 
+  public override void InitializeAgent(){
+    shepherd_start_pos = gameObject.GetComponent<Transform>().position;
   }
 
   public override void CollectObservations(){
@@ -25,6 +27,6 @@ public class ShepherdAgent : Agent {
   }
 
   public override void AgentReset(){
-
+    gameObject.transform.position = shepherd_start_pos;
   }
 }
