@@ -112,6 +112,9 @@ MonoBehaviour:
     agentCameras: []
     maxStep: 0
     resetOnDone: 1
-    onDemandDecision: 0
+    onDemandDecision: 1
     numberOfActionsBetweenDecisions: 0
   wolf: {fileID: 0}
+  white_sheep: {fileID: 0}
+  black_sheep: {fileID: 0}
+  speed: 1
