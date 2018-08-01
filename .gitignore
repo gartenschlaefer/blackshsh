@@ -9,6 +9,10 @@
 [Tt]emp/
 [Uu]nityGenerated/
 [Pp]lugins/
+
+summaries/
+models/
+
 # file on crash reports
 sysinfo.txt
 # Unity3D generated meta files

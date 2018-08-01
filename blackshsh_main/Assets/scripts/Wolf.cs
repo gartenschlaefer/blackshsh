@@ -15,15 +15,12 @@ public class Wolf : MonoBehaviour {
   [HideInInspector]
   public bool follow_shepherd;
 
-  private Vector3 wolf_start_pos;
-
   NavMeshAgent agent;
 
 	// Use this for initialization
 	void Start () {
 		agent = gameObject.GetComponent<NavMeshAgent>();
     agent.SetDestination(black_sheep.position);
-    wolf_start_pos = gameObject.GetComponent<Transform>().position;
 	}
 	
 	// Update is called once per frame
@@ -43,28 +40,31 @@ public class Wolf : MonoBehaviour {
       follow_shepherd = true;
     }
     else{
-      agent.SetDestination(black_sheep.position);
-      follow_shepherd = false;
+      // check if black_sheep is there
+      if (black_sheep == null){
+        agent.SetDestination(shepherd.position);
+        follow_shepherd = true;
+      }
+      else{
+        agent.SetDestination(black_sheep.position);
+        follow_shepherd = false;
+      }
     }
 	}
 
   // Collision
   void OnCollisionEnter(Collision collision){
-    // TODO: Add rewards
     if (collision.gameObject.name == "black_sheep"){
       Debug.Log("Wolf eats black sheep");
-      FindObjectOfType<ShepherdAgent>().BlackSheepDead();
-      gameObject.transform.position = wolf_start_pos;
+      shepherd.GetComponent<ShepherdAgent>().BlackSheepDead();
     }
     else if (collision.gameObject.name == "white_sheep"){
       Debug.Log("Wolf eats white sheep");
-      FindObjectOfType<ShepherdAgent>().WhiteSheepSacrifice();
-      gameObject.transform.position = wolf_start_pos;
+      shepherd.GetComponent<ShepherdAgent>().WhiteSheepSacrifice();
     }
     else if (collision.gameObject.name == "shepherd"){
       Debug.Log("Wolf eats shepherd");
-      FindObjectOfType<ShepherdAgent>().MySelfDead();
-      gameObject.transform.position = wolf_start_pos;
+      shepherd.GetComponent<ShepherdAgent>().MySelfDead();
     }
   }
 }
