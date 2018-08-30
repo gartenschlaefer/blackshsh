@@ -11,21 +11,23 @@ public class ShepherdAgent : Agent {
   public GameObject black_sheep;
   public GameObject walls;
 
-  public float speed = 10.0F;
-  public float gravity = 20.0F;
+  public float speed = 10.0f;
+  public float gravity = 20.0f;
+  private float max_x_distance = 23.0f;
+  private float max_z_distance = 17.0f;
 
   private CharacterController controller;
 
   private Vector3 shepherd_start_pos;
   private Vector3 black_sheep_start_pos;
   private Vector3 wolf_start_pos;
-  private Quaternion wolf_start_rot;
+
+  private bool run_into_wall;
 
   public override void InitializeAgent(){
     shepherd_start_pos = gameObject.GetComponent<Transform>().position;
     black_sheep_start_pos = black_sheep.GetComponent<Transform>().position;
     wolf_start_pos = wolf.GetComponent<Transform>().position;
-    wolf_start_rot = wolf.GetComponent<Transform>().rotation;
     controller = GetComponent<CharacterController>();
   }
 
@@ -35,25 +37,43 @@ public class ShepherdAgent : Agent {
     //AddVectorObs(get2DPos(black_sheep));
     //AddVectorObs(get2DPos(white_sheep));
 
-    // Scalars
-    // Walls
-    Transform[] wall_children = walls.GetComponentsInChildren<Transform>();
-    float min_wall_dist = 20f;
-    foreach (Transform wall in wall_children) {
-       // whatever
-      float wall_dist = Vector3.Distance(gameObject.transform.position, wall.position);
-      if (wall_dist < min_wall_dist){
-        min_wall_dist = wall_dist;
-      }
+    // Raycast
+    int layerMask = 1 << 8;
+    float ray_width = 1;
+    layerMask = ~layerMask;
+    RaycastHit hit;
+    // raycast for walls
+    if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), ray_width, layerMask)  ||
+    Physics.Raycast(transform.position, transform.TransformDirection(Vector3.back), ray_width, layerMask)         || 
+    Physics.Raycast(transform.position, transform.TransformDirection(Vector3.left), ray_width, layerMask)         || 
+    Physics.Raycast(transform.position, transform.TransformDirection(Vector3.right), ray_width, layerMask)){
+      run_into_wall = true;
     }
-    Debug.Log("wall: " + min_wall_dist);
-    AddVectorObs(min_wall_dist);
+    else{
+      run_into_wall = false;
+    }
 
-    // wolf
-    AddVectorObs(Vector3.Distance(gameObject.transform.position, wolf.transform.position));
-    AddVectorObs(Vector3.Distance(black_sheep.transform.position, wolf.transform.position));
-    AddVectorObs(Vector3.Distance(white_sheep.transform.position, wolf.transform.position));
+    // wolf distances
+    //AddVectorObs(Vector3.Distance(gameObject.transform.position, wolf.transform.position));
+    //AddVectorObs(Vector3.Distance(black_sheep.transform.position, wolf.transform.position));
+    //AddVectorObs(Vector3.Distance(white_sheep.transform.position, wolf.transform.position));
+    //AddVectorObs((gameObject.transform.position.x - wolf.transform.position.x) / max_x_distance);
+    //AddVectorObs((gameObject.transform.position.z - wolf.transform.position.z) / max_z_distance);
+    AddVectorObs((gameObject.transform.position.x - black_sheep.transform.position.x) / max_x_distance);
+    AddVectorObs((gameObject.transform.position.z - black_sheep.transform.position.z) / max_z_distance);
+    
+    AddVectorObs((wolf.transform.position.x - black_sheep.transform.position.x) / max_x_distance);
+    AddVectorObs((wolf.transform.position.z - black_sheep.transform.position.z) / max_z_distance);
+
+    AddVectorObs((wolf.transform.position.x - white_sheep.transform.position.x) / max_x_distance);
+    AddVectorObs((wolf.transform.position.z - white_sheep.transform.position.z) / max_z_distance);
+
+    AddVectorObs((gameObject.transform.position.x - wolf.transform.position.x) / max_x_distance);
+    AddVectorObs((gameObject.transform.position.z - wolf.transform.position.z) / max_z_distance);
+
+
     AddVectorObs(wolf.GetComponent<Wolf>().follow_shepherd);
+    AddVectorObs(run_into_wall);
 
     //AddVectorObs(wolf.transform.position);
     //AddVectorObs(white_sheep.transform.position);
@@ -66,65 +86,61 @@ public class ShepherdAgent : Agent {
   public override void AgentAction(float[] vectorAction, string textAction){
     // input vectors
     if (brain.brainParameters.vectorActionSpaceType == SpaceType.continuous){
-      float x = Mathf.Clamp(vectorAction[0], -1, 1);
-      float z = Mathf.Clamp(vectorAction[1], -1, 1);
+      float x = Mathf.Clamp(vectorAction[1], -1, 1);
+      float z = Mathf.Clamp(vectorAction[0], -1, 1);
       float run = Mathf.Clamp(vectorAction[2], 1, 2);
       // actions
       float action_x = x * run * speed * Time.deltaTime;
       float action_z = z * run * speed * Time.deltaTime;
-
-      // actual distance
-      //float actual_dist_wolf = Vector3.Distance(gameObject.transform.position, wolf.transform.position);
-      //float actual_dist_white = Vector3.Distance(gameObject.transform.position, white_sheep.transform.position);
-
       // move the agent
       Vector3 movement = new Vector3(action_x, 0, action_z);
       movement.y = -gravity * Time.deltaTime;
       controller.Move(movement);
-
-      /*
-      if (action_x != 0 || action_z != 0){
-        //gameObject.transform.Translate(action_x, 0, action_z); 
-        float new_dist_wolf = Vector3.Distance(gameObject.transform.position, wolf.transform.position);
-        float new_dist_white = Vector3.Distance(gameObject.transform.position, white_sheep.transform.position);
-        // move to the direction of wolf
-
-        if (!wolf.GetComponent<Wolf>().follow_shepherd){
-          if (actual_dist_wolf < new_dist_wolf){
-            SetReward(0.1f);
-          }
-          else {
-            SetReward(-0.1f);
-          }
-        }
-        // move with wolf to white sheep
-        else{
-          if (actual_dist_white < new_dist_white){
-            SetReward(0.1f);
-          }
-          else {
-            SetReward(-0.1f);
-          }
-        }
-      }
-      */
     }
-
     // follow reward
     if (wolf.GetComponent<Wolf>().follow_shepherd){
       SetReward(0.1f);
     }
+    else if (wolf.GetComponent<Wolf>().follow_white_sheep){
+      SetReward(0.5f);
+    }
     else {
-      SetReward(-0.01f);
+      SetReward(-0.1f);
+    }
+    // shepherd runs into the wall
+    if (run_into_wall){
+      SetReward(-0.1f);
     }
   }
 
   // Reset everything after done or time-up
   public override void AgentReset(){
-    gameObject.transform.position = shepherd_start_pos;
+    Vector3[] wolf_positions =  { new Vector3 { x = -5, y = 0, z = -5 }, 
+                                  new Vector3 { x = -5, y = 0, z = 5}, 
+                                  new Vector3 { x = 5, y = 0, z = -5}, 
+                                  new Vector3 { x = 5, y = 0, z = 5} 
+                                };
+    Vector3[] shepherd_positions =  { new Vector3 { x = -2, y = 0, z = -2 }, 
+                                      new Vector3 { x = -2, y = 0, z = 2}, 
+                                      new Vector3 { x = 2, y = 0, z = -2}, 
+                                      new Vector3 { x = 2, y = 0, z = 2} 
+                                    };
+    Vector3 spawnShepherd = new Vector3(  
+      black_sheep_start_pos.x + shepherd_positions[Random.Range(0, 3)].x, 
+      0, 
+      black_sheep_start_pos.z + shepherd_positions[Random.Range(0, 3)].z);
+
+    Vector3 spawnWolf = new Vector3( 
+      black_sheep_start_pos.x + wolf_positions[Random.Range(0, 3)].x, 
+      0, 
+      black_sheep_start_pos.z + wolf_positions[Random.Range(0, 3)].z);
+
+    wolf.GetComponent<Rigidbody>().velocity = new Vector3(0, 0, 0);
+    wolf.GetComponent<Rigidbody>().angularVelocity = new Vector3(0, 0, 0);
+    wolf.GetComponent<Transform>().position = spawnWolf;
+    wolf.GetComponent<Transform>().rotation = Random.rotation;
     black_sheep.GetComponent<Transform>().position = black_sheep_start_pos;
-    wolf.GetComponent<Transform>().position = wolf_start_pos;
-    wolf.GetComponent<Transform>().rotation = wolf_start_rot;
+    gameObject.transform.position = spawnShepherd;
   }
 
   // feedback
@@ -151,13 +167,4 @@ public class ShepherdAgent : Agent {
     return new_pos;
   }
 
-  // Collider
-  /*
-  public void OnControllerColliderHit(ControllerColliderHit hit) {
-    Rigidbody body = hit.collider.attachedRigidbody;
-    Debug.Log("hit something");
-    if (body == null || body.isKinematic)
-        return;
-  }
-  */
 }

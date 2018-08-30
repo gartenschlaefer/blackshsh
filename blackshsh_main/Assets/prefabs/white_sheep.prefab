@@ -23,7 +23,7 @@ GameObject:
   - component: {fileID: 65151828622632928}
   - component: {fileID: 23416133345669506}
   - component: {fileID: 54204824511904664}
-  m_Layer: 8
+  m_Layer: 9
   m_Name: white_sheep
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -37,7 +37,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1721967890321478}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 7.553344, y: 1.4535017, z: -1.1004977}
+  m_LocalPosition: {x: 9.8, y: 1.4535017, z: -3.68}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}

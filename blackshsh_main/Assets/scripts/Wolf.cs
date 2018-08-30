@@ -14,6 +14,8 @@ public class Wolf : MonoBehaviour {
 
   [HideInInspector]
   public bool follow_shepherd;
+  [HideInInspector]
+  public bool follow_white_sheep;
 
   NavMeshAgent agent;
 
@@ -34,20 +36,24 @@ public class Wolf : MonoBehaviour {
     if (white_sheep_dist < follow_white_sheep_dist){
       agent.SetDestination(white_sheep.position);
       follow_shepherd = false;
+      follow_white_sheep = true;
     }
     else if (shepherd_dist < follow_shepherd_dist){
       agent.SetDestination(shepherd.position);
       follow_shepherd = true;
+      follow_white_sheep = false;
     }
     else{
       // check if black_sheep is there
       if (black_sheep == null){
         agent.SetDestination(shepherd.position);
         follow_shepherd = true;
+        follow_white_sheep = false;
       }
       else{
         agent.SetDestination(black_sheep.position);
         follow_shepherd = false;
+        follow_white_sheep = false;
       }
     }
 	}
